@@ -26,8 +26,8 @@ function mapDel(){const m=curMap(doc()),s=m.nodes.find(n=>n.id==S.sel);if(!s||!s
  m.nodes=m.nodes.filter(n=>!gone.has(n.id));m.edges=m.edges.filter(e=>!gone.has(e.a)&&!gone.has(e.b));S.sel=null;save();mapRedraw()}
 function mapZ(x){const m=curMap(doc());m.z=Math.max(.3,Math.min(2.5,(m.z||1)*(x>0?1.2:.83)));save();mapRedraw()}
 function bindMap(){const w=document.getElementById('mapw');if(!w)return;const m=curMap(doc());let dr=null;
- w.onpointerdown=e=>{if(e.target.closest('.mtool,.mtypes')||e.target.isContentEditable)return;const nd=e.target.closest('.nd');
-  if(nd){const id=+nd.dataset.id;if(S.rel&&S.sel&&S.sel!=id){m.edges.push({id:Date.now(),a:S.sel,b:id,l:prompt('Etichetta (facoltativa)','')||''});S.rel=false;save();mapRedraw();return}
+ w.onpointerdown=async e=>{if(e.target.closest('.mtool,.mtypes')||e.target.isContentEditable)return;const nd=e.target.closest('.nd');
+  if(nd){const id=+nd.dataset.id;if(S.rel&&S.sel&&S.sel!=id){m.edges.push({id:Date.now(),a:S.sel,b:id,l:((await form('Etichetta della relazione',[{l:'Etichetta (facoltativa)',v:''}],'Aggiungi'))||[''])[0]});S.rel=false;save();mapRedraw();return}
    const n=m.nodes.find(n=>n.id==id);S.sel=id;dr={n,x:e.clientX,y:e.clientY,ox:n.x,oy:n.y}}else{S.sel=null;S.rel=false;dr={pan:1,x:e.clientX,y:e.clientY,ox:m.px||0,oy:m.py||0}}
   w.setPointerCapture(e.pointerId);mapRedraw()};
  w.onpointermove=e=>{if(!dr)return;const z=m.z||1,dx=e.clientX-dr.x,dy=e.clientY-dr.y;if(dr.pan){m.px=dr.ox+dx;m.py=dr.oy+dy}else{dr.n.x=dr.ox+dx/z;dr.n.y=dr.oy+dy/z}mapRedraw()};

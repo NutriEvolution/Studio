@@ -44,6 +44,35 @@ jobs:
           bash ci/run.sh ndk bash -c "echo HOME=$ANDROID_HOME; ls $ANDROID_HOME; ls $ANDROID_HOME/cmdline-tools; yes | $SDKM --licenses > /dev/null; $SDKM --install 'ndk;27.0.12077973' 'platforms;android-34' 'build-tools;34.0.0'"
           echo "NDK_HOME=$ANDROID_HOME/ndk/27.0.12077973" >> "$GITHUB_ENV"
       - run: bash ci/run.sh android-init npx --yes @tauri-apps/cli@2 android init
+      - name: Margini di sistema (barra di stato e navigazione)
+        run: |
+          F=$(find src-tauri/gen/android -name MainActivity.kt | head -1)
+          echo "MainActivity: $F"
+          cat > "$F" <<'KT'
+          package it.prencipe.studio
+
+          import android.os.Bundle
+          import android.view.View
+          import androidx.activity.enableEdgeToEdge
+          import androidx.core.view.ViewCompat
+          import androidx.core.view.WindowInsetsCompat
+
+          class MainActivity : TauriActivity() {
+            override fun onCreate(savedInstanceState: Bundle?) {
+              enableEdgeToEdge()
+              super.onCreate(savedInstanceState)
+              val root = findViewById<View>(android.R.id.content)
+              ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
+                val b = insets.getInsets(
+                  WindowInsetsCompat.Type.systemBars() or
+                  WindowInsetsCompat.Type.displayCutout() or
+                  WindowInsetsCompat.Type.ime())
+                v.setPadding(b.left, b.top, b.right, b.bottom)
+                WindowInsetsCompat.CONSUMED
+              }
+            }
+          }
+          KT
       - run: bash ci/run.sh android-build npx --yes @tauri-apps/cli@2 android build --apk --debug --target aarch64
       - uses: actions/upload-artifact@v4
         with:
