@@ -37,10 +37,10 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with: { workspaces: "src-tauri" }
       - run: npx --yes @tauri-apps/cli@2 icon app-icon.png
-      - run: npx --yes @tauri-apps/cli@2 android init
+      - run: bash ci/run.sh android-init npx --yes @tauri-apps/cli@2 android init
         env:
           NDK_HOME: ${{ env.ANDROID_NDK_LATEST_HOME }}
-      - run: npx --yes @tauri-apps/cli@2 android build --apk --debug --target aarch64
+      - run: bash ci/run.sh android-build npx --yes @tauri-apps/cli@2 android build --apk --debug --target aarch64
         env:
           NDK_HOME: ${{ env.ANDROID_NDK_LATEST_HOME }}
       - uses: actions/upload-artifact@v4
