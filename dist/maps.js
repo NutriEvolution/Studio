@@ -1,0 +1,50 @@
+const TYPES=[['ibrida','Ibrida'],['mentale','Mentale'],['lineare','Lineare'],['concettuale','Concettuale']],COL=['#1b2033','#f5b942','#7bd3c0','#9db4ff','#e59aa8','#c4a7ff','#9be08a'];
+document.getElementById('sb').innerHTML=`<button onmousedown="event.preventDefault()" onclick="A('kw')">${I('key-round')}Parola chiave</button><button onmousedown="event.preventDefault()" onclick="A('draft','n')">${I('sticky-note')}Nota</button><button onmousedown="event.preventDefault()" onclick="A('draft','q')">${I('circle-help')}Domanda</button>`;
+function curMap(d){d.maps=d.maps||[];let m=d.maps.find(m=>m.id==S.mp)||d.maps[0];if(!m){m=newMap(d)}S.mp=m.id;return m}
+function newMap(d){const m={id:Date.now(),type:'ibrida',z:1,px:0,py:0,nodes:[{id:1,x:0,y:0,t:'Argomento principale',c:0,p:null}],edges:[]};d.maps=d.maps||[];d.maps.push(m);return m}
+function layout(m){const ch=id=>m.nodes.filter(n=>n.p==id),root=m.nodes.find(n=>!n.p);
+ if(m.type=='mentale'){const go=(n,a0,a1,r)=>{const k=ch(n.id);k.forEach((c,i)=>{const a=a0+(a1-a0)*(i+.5)/k.length;c.x=Math.cos(a)*r*190;c.y=Math.sin(a)*r*110;go(c,a0+(a1-a0)*i/k.length,a0+(a1-a0)*(i+1)/k.length,r+1)})};root.x=root.y=0;go(root,-Math.PI,Math.PI,1);return}
+ const lr=m.type=='lineare';let leaf=0;const go=(n,d)=>{const k=ch(n.id);if(!k.length)n.s=leaf++;else{k.forEach(c=>go(c,d+1));n.s=(k[0].s+k[k.length-1].s)/2}n.d=d};go(root,0);
+ const ox=root.s;m.nodes.forEach(n=>{if(lr){n.x=n.d*230;n.y=(n.s-ox)*64}else{n.x=(n.s-ox)*200;n.y=n.d*110}})}
+function mapInner(m){const N=id=>m.nodes.find(n=>n.id==id),lr=m.type=='lineare',mt=m.type=='mentale';
+ const e1=m.nodes.filter(n=>n.p).map(n=>{const a=N(n.p);return`<path class=ed d="M${a.x} ${a.y}${mt?`L${n.x} ${n.y}`:lr?`C${(a.x+n.x)/2} ${a.y} ${(a.x+n.x)/2} ${n.y} ${n.x} ${n.y}`:`C${a.x} ${(a.y+n.y)/2} ${n.x} ${(a.y+n.y)/2} ${n.x} ${n.y}`}"/>`}).join('');
+ const e2=m.edges.map(e=>{const a=N(e.a),b=N(e.b);if(!a||!b)return'';return`<path class="ed rl" d="M${a.x} ${a.y}Q${(a.x+b.x)/2+40} ${(a.y+b.y)/2-40} ${b.x} ${b.y}"/>`}).join('');
+ const lb=m.edges.filter(e=>e.l&&N(e.a)&&N(e.b)).map(e=>{const a=N(e.a),b=N(e.b);return`<div class=rlb style="left:${(a.x+b.x)/2+20}px;top:${(a.y+b.y)/2-20}px">${esc(e.l)}</div>`}).join('');
+ const nd=m.nodes.map(n=>`<div class="nd${n.p?'':' root'}${n.c?' tint':''}${S.sel==n.id?' sel':''}" data-id=${n.id} style="left:${n.x}px;top:${n.y}px${n.c?';background:'+COL[n.c]:''}"><span class=tx>${esc(n.t)}</span></div>`).join('');
+ return`<div class=mapr style="transform:translate(${m.px||0}px,${m.py||0}px) scale(${m.z||1})"><svg class=msv>${e1}${e2}</svg>${lb}${nd}</div>`}
+function mapTool(m){const s=S.sel;return(s?`${COL.map((c,i)=>`<i class=sw style="background:${c}" onclick="mapColor(${i})"></i>`).join('')}<button title="Nodo figlio (Tab)" onclick="mapAdd('c')">${I('corner-down-right')}</button><button title="Nodo fratello (Invio)" onclick="mapAdd('s')">${I('list-plus')}</button><button title="Relazione (R)" class="${S.rel?'on':''}" onclick="mapRel()">${I('spline')}</button><button title="Elimina" onclick="mapDel()">${I('trash-2')}</button>`:`<span class=mut style="padding:0 8px">Tocca un nodo · doppio tocco per scrivere</span>`)+`<button onclick="mapZ(-1)">${I('minus')}</button><span class=mut>${Math.round((m.z||1)*100)}%</span><button onclick="mapZ(1)">${I('plus')}</button>`}
+function mapView(){const m=curMap(doc());return`<div class=mapw id=mapw><button class=mex onclick="A('menu','mexp')">${I('download')}</button><div class=mtypes>${TYPES.map(([k,l])=>`<button class="${m.type==k?'on':''}" onclick="mapType('${k}')">${l}</button>`).join('')}</div><div class=mapc id=mapc style="top:${m.type=='mentale'?50:24}%">${mapInner(m)}</div><div class=mtool id=mapt>${mapTool(m)}</div></div>`}
+function mapRedraw(){const c=$('#mapc');if(!c)return;const m=curMap(doc());c.innerHTML=mapInner(m);$('#mapt').innerHTML=mapTool(m)}
+const mapList=d=>(d.maps||[]).map((m,k)=>`<div class=item onclick="S.mp=${m.id};S.vm=S.vm||2;render()"><b>Mappa ${k+1}</b> <span class=mut>${m.nodes.length} nodi</span>${acts('maps',m.id,1)}</div>`).concat([`<button onclick="mapNew()" style="width:100%">${I('plus')}Nuova mappa</button>`]);
+function mapNew(){const d=doc(),m=newMap(d);S.mp=m.id;S.vm=2;S.menu=null;S.sel=null;save();render()}
+function mapType(k){const m=curMap(doc());m.type=k;m.px=m.py=0;layout(m);save();mapRedraw();render()}
+function mapAdd(k){const d=doc(),m=curMap(d),s=m.nodes.find(n=>n.id==S.sel);if(!s)return;const p=(k=='c'||!s.p)?s.id:s.p,par=m.nodes.find(n=>n.id==p),cnt=m.nodes.filter(n=>n.p==p).length,id=Date.now();
+ m.nodes.push({id,x:par.x+cnt*190,y:par.y+110,t:'Inserisci descrizione',c:k=='s'?s.c:0,p});if(m.type!='ibrida')layout(m);S.sel=id;save();mapRedraw()}
+function mapColor(i){const m=curMap(doc()),n=m.nodes.find(n=>n.id==S.sel);if(n){n.c=i;save();mapRedraw()}}
+function mapRel(){S.rel=!S.rel;mapRedraw()}
+function mapDel(){const m=curMap(doc()),s=m.nodes.find(n=>n.id==S.sel);if(!s||!s.p)return;const gone=new Set([s.id]);let ch=1;while(ch){ch=0;m.nodes.forEach(n=>{if(n.p&&gone.has(n.p)&&!gone.has(n.id)){gone.add(n.id);ch=1}})}
+ m.nodes=m.nodes.filter(n=>!gone.has(n.id));m.edges=m.edges.filter(e=>!gone.has(e.a)&&!gone.has(e.b));S.sel=null;save();mapRedraw()}
+function mapZ(x){const m=curMap(doc());m.z=Math.max(.3,Math.min(2.5,(m.z||1)*(x>0?1.2:.83)));save();mapRedraw()}
+function bindMap(){const w=document.getElementById('mapw');if(!w)return;const m=curMap(doc());let dr=null;
+ w.onpointerdown=e=>{if(e.target.closest('.mtool,.mtypes')||e.target.isContentEditable)return;const nd=e.target.closest('.nd');
+  if(nd){const id=+nd.dataset.id;if(S.rel&&S.sel&&S.sel!=id){m.edges.push({id:Date.now(),a:S.sel,b:id,l:prompt('Etichetta (facoltativa)','')||''});S.rel=false;save();mapRedraw();return}
+   const n=m.nodes.find(n=>n.id==id);S.sel=id;dr={n,x:e.clientX,y:e.clientY,ox:n.x,oy:n.y}}else{S.sel=null;S.rel=false;dr={pan:1,x:e.clientX,y:e.clientY,ox:m.px||0,oy:m.py||0}}
+  w.setPointerCapture(e.pointerId);mapRedraw()};
+ w.onpointermove=e=>{if(!dr)return;const z=m.z||1,dx=e.clientX-dr.x,dy=e.clientY-dr.y;if(dr.pan){m.px=dr.ox+dx;m.py=dr.oy+dy}else{dr.n.x=dr.ox+dx/z;dr.n.y=dr.oy+dy/z}mapRedraw()};
+ w.onpointerup=()=>{if(dr){save();dr=null}};
+ w.onwheel=e=>{e.preventDefault();m.z=Math.max(.3,Math.min(2.5,(m.z||1)*(e.deltaY<0?1.1:.9)));mapRedraw()};
+ w.ondblclick=e=>{const nd=e.target.closest('.nd');if(!nd)return;const t=nd.querySelector('.tx');t.contentEditable=true;t.focus();getSelection().selectAllChildren(t);
+  t.onblur=()=>{t.contentEditable=false;m.nodes.find(n=>n.id==+nd.dataset.id).t=t.textContent.trim()||'…';save()};t.onkeydown=ev=>{if(ev.key=='Enter'){ev.preventDefault();t.blur()}ev.stopPropagation()}}}
+document.addEventListener('keydown',e=>{if(S.view!='read'||!S.vm||/INPUT|TEXTAREA/.test(e.target.tagName)||e.target.isContentEditable)return;
+ if(e.key=='Tab'){e.preventDefault();mapAdd('c')}if(e.key=='Enter')mapAdd('s');if(e.key=='Delete')mapDel();if(e.key=='r'||e.key=='R')mapRel();if(e.key=='Escape'){S.rel=false;mapRedraw()}});
+function mapSvg(m){const W=n=>Math.max(90,n.t.length*8.2+34),H=36,N=id=>m.nodes.find(n=>n.id==id),x=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'),lr=m.type=='lineare',mt=m.type=='mentale';let a=1e9,b=1e9,c=-1e9,e=-1e9;
+ m.nodes.forEach(n=>{a=Math.min(a,n.x-W(n)/2);c=Math.max(c,n.x+W(n)/2);b=Math.min(b,n.y-H/2);e=Math.max(e,n.y+H/2)});a-=30;b-=30;c+=30;e+=30;
+ let o=`<svg xmlns="http://www.w3.org/2000/svg" width="${c-a}" height="${e-b}" viewBox="${a} ${b} ${c-a} ${e-b}" font-family="Inter,Arial,sans-serif" font-size="14"><rect x="${a}" y="${b}" width="${c-a}" height="${e-b}" fill="#fff"/>`;
+ m.nodes.filter(n=>n.p).forEach(n=>{const p=N(n.p);o+=`<path fill="none" stroke="#8a90a6" stroke-width="1.6" d="M${p.x} ${p.y}${mt?`L${n.x} ${n.y}`:lr?`C${(p.x+n.x)/2} ${p.y} ${(p.x+n.x)/2} ${n.y} ${n.x} ${n.y}`:`C${p.x} ${(p.y+n.y)/2} ${n.x} ${(p.y+n.y)/2} ${n.x} ${n.y}`}"/>`});
+ m.edges.forEach(r=>{const p=N(r.a),q=N(r.b);if(p&&q){o+=`<path fill="none" stroke="#d99a1b" stroke-width="1.6" stroke-dasharray="6 5" d="M${p.x} ${p.y}Q${(p.x+q.x)/2+40} ${(p.y+q.y)/2-40} ${q.x} ${q.y}"/>`;if(r.l)o+=`<text x="${(p.x+q.x)/2+20}" y="${(p.y+q.y)/2-20}" text-anchor="middle" fill="#b57a00" font-size="12">${x(r.l)}</text>`}});
+ m.nodes.forEach(n=>{const w=W(n);o+=`<rect x="${n.x-w/2}" y="${n.y-H/2}" width="${w}" height="${H}" rx="10" fill="${!n.p?'#e9e8e3':n.c?COL[n.c]:'#eef0f7'}" stroke="${!n.p||n.c?'none':'#9aa3c4'}"/><text x="${n.x}" y="${n.y}" text-anchor="middle" dominant-baseline="central" fill="#14161f">${x(n.t)}</text>`});return o+'</svg>'}
+function dl(blob,name){const f=new File([blob],name,{type:blob.type});if(/Android|iPhone/i.test(navigator.userAgent)&&navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f]}).catch(()=>{});return}const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.append(a);a.click();a.remove()}
+function mapExp(k){S.menu=null;render();const svg=mapSvg(curMap(doc()));
+ if(k=='svg')return dl(new Blob([svg],{type:'image/svg+xml'}),'mappa.svg');
+ if(k=='print'){const d=document.createElement('div');d.id='prt';d.innerHTML=svg;document.body.append(d);window.print();setTimeout(()=>d.remove(),800);return}
+ const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=im.width*2;c.height=im.height*2;const g=c.getContext('2d');g.scale(2,2);g.drawImage(im,0,0);c.toBlob(b=>dl(b,'mappa.png'))};im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)}
