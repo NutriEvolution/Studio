@@ -37,6 +37,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with: { workspaces: "src-tauri" }
       - run: npx --yes @tauri-apps/cli@2 icon app-icon.png
+      - run: npm install
       - name: NDK Android
         run: |
           SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
