@@ -11,7 +11,7 @@ let S=JSON.parse(localStorage.getItem('studio.v2')||'null')||{docs:[{id:1,title:
 "Il diabete mellito di tipo 2 è caratterizzato da insulino-resistenza e da ridotta secrezione insulinica. Nel tempo porta a iperglicemia cronica. La diagnosi si basa su glicemia a digiuno, curva da carico ed emoglobina glicata.",
 "La terapia nutrizionale è un pilastro del trattamento. Il calo ponderale migliora il controllo glicemico. L'apporto di carboidrati va distribuito nell'arco della giornata.",
 "Le fibre alimentari rallentano l'assorbimento del glucosio. Si raccomandano almeno 14 g ogni 1000 kcal."],kw:[],q:[],n:[],s:[]}],decks:[],view:'lib',cur:1,focus:false,gran:'frase',i:0,vm:0,panel:null,menu:null,modal:null,draft:null,rev:null,lay:'grid',ord:'ins',find:''};
-const save=()=>localStorage.setItem('studio.v2',JSON.stringify(S)),doc=()=>S.docs.find(d=>d.id==S.cur),dk=id=>S.decks.find(d=>d.id==id);
+let READY=false,ST=0;const save=()=>{if(!READY)return;clearTimeout(ST);ST=setTimeout(flush,200)},flush=()=>{clearTimeout(ST);const c=JSON.stringify(S);return idbSet('state',JSON.parse(c)).catch(()=>{try{localStorage.setItem('studio.v2',c)}catch(e){}})},doc=()=>S.docs.find(d=>d.id==S.cur),dk=id=>S.decks.find(d=>d.id==id);
 const sents=d=>d.kind=='pdf'&&PS[d.id]?(S.gran=='riga'&&!S.pdfText&&PL[d.id]?PL[d.id]:PS[d.id]):d.paras.flatMap((p,pi)=>split(p).map(t=>({t,pi})));
 const cards=k=>S.docs.filter(d=>k.src.includes(d.id)).flatMap(d=>d.q),due=k=>cards(k).filter(q=>q.due<=today());
 const lt=async(b,c)=>window.__TAURI__?window.__TAURI__.core.invoke('leitner_preview',{boxN:b,correct:c}):(n=>[n,IV[n-1]])(c?Math.min(b+1,5):1);
@@ -83,5 +83,8 @@ function render(){let h=topbar(),v=S.view;if(v=='lib'||v=='deck'){h=libDeckTop(v
 function review(){const r=S.rev,k=dk(r.id);if(r.end)return`<div class="card empty"><h2>Ripasso completato</h2><div class=mut>${r.q.length} carte${r.m=='test'?' (nulla è stato salvato)':''}.</div><button class=pri onclick="A('view','deck')">Torna ai mazzi</button></div>`;
  const c=cards(k).find(c=>c.id==r.q[r.k]);return`<div class=mut>${esc(k.name)} · ${r.k+1}/${r.q.length}</div><div class="bx">${[1,2,3,4,5].map(b=>`<div><b>${cards(k).filter(q=>q.box==b).length}</b><div class=mut>Scatola ${b}</div></div>`).join('')}</div><div class="card qa">${esc(c.q)}${r.show?`<hr style="border-color:#ffffff22"><div style="color:var(--c)">${esc(c.a)}</div>`:''}</div><div style="display:flex;gap:8px;justify-content:center;margin-top:12px">${r.show?`<button style="background:#7a2b2b" onclick="A('ans',false)">Sbagliata</button><button class=pri onclick="A('ans',true)">Giusta</button>`:`<button class=pri onclick="A('show')">Mostra risposta</button>`}</div>`}
 document.addEventListener('keydown',e=>{if(S.view=='read'&&!/INPUT|TEXTAREA/.test(e.target.tagName)){if(e.key=='ArrowRight'||e.key==' ')A('go',1);if(e.key=='ArrowLeft')A('go',-1)}});
+const HAD=localStorage.getItem('studio.v2')!==null;
+addEventListener('pagehide',()=>flush());document.addEventListener('visibilitychange',()=>{if(document.hidden)flush()});
+(async()=>{try{const st=await idbGet('state');if(st&&st.docs){S=st}else if(HAD){await idbSet('state',JSON.parse(JSON.stringify(S)));localStorage.removeItem('studio.v2')}}catch(e){}READY=true;render()})();
 render();
 </script></body></html>
