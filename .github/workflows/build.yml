@@ -39,8 +39,8 @@ jobs:
       - run: npx --yes @tauri-apps/cli@2 icon app-icon.png
       - name: NDK Android
         run: |
-          yes | sdkmanager --licenses > /dev/null || true
-          bash ci/run.sh ndk sdkmanager --install "ndk;27.0.12077973" "platforms;android-34" "build-tools;34.0.0"
+          SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          bash ci/run.sh ndk bash -c "echo HOME=$ANDROID_HOME; ls $ANDROID_HOME; ls $ANDROID_HOME/cmdline-tools; yes | $SDKM --licenses > /dev/null; $SDKM --install 'ndk;27.0.12077973' 'platforms;android-34' 'build-tools;34.0.0'"
           echo "NDK_HOME=$ANDROID_HOME/ndk/27.0.12077973" >> "$GITHUB_ENV"
       - run: bash ci/run.sh android-init npx --yes @tauri-apps/cli@2 android init
       - run: bash ci/run.sh android-build npx --yes @tauri-apps/cli@2 android build --apk --debug --target aarch64
