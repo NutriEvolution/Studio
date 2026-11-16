@@ -96,3 +96,6 @@ button,.nav .mut{white-space:nowrap}
 .pdfv{position:fixed;z-index:1;overflow:auto;border-radius:18px;padding:12px;overscroll-behavior:contain;background:#12141d;border:1px solid var(--bd)}.pdfv.off{transform:translateX(-300vw)}
 .pdfph{flex:1;min-width:0;height:calc(100vh - 150px)}body.lock{overflow:hidden}
 @media(max-width:700px){.pdfph{height:calc(100dvh - 132px)}}
+
+.zoomer{width:max-content;min-width:100%;transform-origin:0 0;will-change:transform}
+.upd{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:14px;border:1px solid #4d3d1a;background:#17120a;border-radius:16px;margin:2px 0 4px}

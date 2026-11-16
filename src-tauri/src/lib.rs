@@ -9,6 +9,7 @@ fn leitner_preview(box_n: u8, correct: bool) -> (u8, i64) {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![leitner_preview])
         .run(tauri::generate_context!())
         .expect("errore nell'avvio di Studio");
