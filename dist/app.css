@@ -135,3 +135,7 @@ body.pgdark .pgw{background:#161616}body.pgdark .pgw .cv{filter:invert(.9) hue-r
 .pg{font-size:calc(1.22rem*var(--tsz,1))}
 
 #sb{max-width:calc(100vw - 16px)}.sbr{flex-wrap:wrap}#sb button{padding:7px 9px;font-size:.8rem;gap:5px}#sb .i{width:16px;height:16px}.sbr.hd{gap:9px}.dot{width:22px;height:22px}
+
+@keyframes pop{from{opacity:0;transform:translateY(6px) scale(.98)}}@keyframes popm{from{opacity:0;transform:translate(-50%,-47%) scale(.98)}to{opacity:1;transform:translate(-50%,-50%)}}@keyframes fin{from{opacity:0}}@keyframes up{from{opacity:0;transform:translateY(24px)}}
+.menu{animation:pop .14s ease-out}.modal{animation:popm .16s ease-out}.ov{animation:fin .16s}.ups{animation:up .22s ease-out}main>*{animation:fin .18s}.top{animation:none}
+.dov,.drw{will-change:transform,opacity}button{transition:background .12s,transform .08s}button:active{transform:scale(.97)}

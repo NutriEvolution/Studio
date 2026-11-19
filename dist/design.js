@@ -9,7 +9,7 @@ function reviewView(){const r=S.rev;if(r.end)return`<section class=done><span cl
  const c=allQ().find(q=>q.id==r.q[r.k]),nm=r.id&&dk(r.id)?esc(dk(r.id).name):'Tutte le scadenze';
  return`<div class=rvh><button onclick="A('view','deck')">${I('x')}</button><div><div class=mono>${nm}</div><div class=prog style="margin-top:6px"><i style="width:${r.k/r.q.length*100}%"></i></div></div><span class="mono mut">${r.k+1}/${r.q.length}</span></div><div class=bxr>${[1,2,3,4,5].map(b=>`<span class="${b==c.box?'on':''}">S${b}</span>`).join('')}</div><section class=fc><div class="mono mut">Domanda</div><div class=fq>${esc(c.q)}</div>${r.show?`<hr><div class="mono mut">Risposta</div><div class=fa>${esc(c.a)}</div>`:''}</section><div class=fbtn>${r.show?`<button class=bad onclick="A('ans',false)">Da rivedere</button><button class=pri onclick="A('ans',true)">Ricordata</button>`:`<button class=pri onclick="A('show')">Mostra risposta</button>`}</div>`}
 
-function fillCovers(){document.querySelectorAll('img[data-t]').forEach(im=>idbGet('t'+im.dataset.t).then(u=>u?im.src=u:im.remove()))}
+function fillCovers(){document.querySelectorAll('img[data-t]:not([src])').forEach(im=>idbGet('t'+im.dataset.t).then(u=>u?im.src=u:im.remove()))}
 /* ---- cerca nel testo, backup, esporta appunti, vai a ---- */
 function modalMisc(){if(S.modal=='find')return`<div class=ov onclick="A('close')"></div><div class=modal><h2>Cerca nel testo</h2><input id=fq placeholder="Scrivi una parola o una frase" oninput="findRun(this.value)"><div id=fres style="max-height:50vh;overflow:auto"></div></div>`;
  if(S.modal=='edoc'){const o=S.docs.find(o=>o.id==S.edoc);if(!o)return'';return`<div class=ov onclick="A('close')"></div><div class=modal><h2>Modifica i dettagli</h2><div class=lab>Titolo</div><input id=ft value="${esc(o.title)}"><div class=lab>Anno</div><input id=fy value="${esc(o.year||'')}" placeholder="es. 2019"><div class=lab>Autori (separati da virgola)</div><input id=fa value="${esc((o.authors||[]).join(', '))}">${o.kind=='pdf'?`<button style="width:100%;margin-bottom:12px" onclick="reanalyze(${o.id})">Rianalizza il PDF (frasi, indice, autori)</button>`:''}<div style="display:flex;gap:8px;justify-content:flex-end"><button onclick="A('close')">Annulla</button><button class=pri onclick="A('saveedoc')">${I('check')}Salva</button></div></div>`}
@@ -47,3 +47,10 @@ function sideHTML(d){if(!S.side||!d)return'';const pdf=d.kind=='pdf'&&!S.pdfText
  if(S.side=='th'&&pdf)return`<div class=sidebar><div class=lab>Anteprime</div>${Array.from({length:d.pages},(_,n)=>`<div class=th onclick="jumpPage(${n})"><img data-th=${n}><div class=mut>${n+1}</div></div>`).join('')}</div>`;
  const L=sents(d),ix=(d.idx||[]),pos=ix.map(x=>idxIndex(L,x));let act=-1;pos.forEach((p,k)=>{if(p<=S.i)act=k});
  return`<div class=sidebar><div class=lab>Indice</div>${ix.map((x,k)=>`<div class="ix l${x.lv}${k==act?' on':''}" onclick="jumpIdx(${x.id})">${esc(x.t)}${acts('idx',x.id,1)}</div>`).join('')||'<div class=mut style="margin-top:8px">Nessuna sezione. Creane una dal menu ＋ → Sezione indice.</div>'}</div>`}
+
+/* aggiornamento della pagina senza ricostruirla: i nodi uguali restano, così transizioni e immagini non lampeggiano */
+function morphInto(el,html,self){if(!window.morphdom){el.innerHTML=html;return}
+ morphdom(el,self?html:'<div id="'+el.id+'">'+html+'</div>',{childrenOnly:!self,onBeforeElUpdated(from,to){
+  if(from.tagName=='IMG'&&from.getAttribute('src')&&['t','i','th'].some(k=>from.dataset[k]!==undefined&&from.dataset[k]===to.dataset[k]))return false;
+  if((from.tagName=='INPUT'||from.tagName=='TEXTAREA')&&from===document.activeElement)to.value=from.value;return true}})}
+const patchApp=html=>morphInto(document.getElementById('app'),html);

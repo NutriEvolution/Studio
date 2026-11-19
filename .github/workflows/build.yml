@@ -51,6 +51,8 @@ jobs:
           cat > "$F" <<'KT'
           package it.prencipe.studio
 
+          import android.graphics.Rect
+          import android.os.Build
           import android.os.Bundle
           import android.view.View
           import androidx.activity.enableEdgeToEdge
@@ -69,6 +71,13 @@ jobs:
                   WindowInsetsCompat.Type.ime())
                 v.setPadding(b.left, b.top, b.right, b.bottom)
                 WindowInsetsCompat.CONSUMED
+              }
+              root.post {
+                if (Build.VERSION.SDK_INT >= 29) {
+                  val dn = resources.displayMetrics.density
+                  val top = (root.height * 0.25f).toInt()
+                  root.systemGestureExclusionRects = listOf(Rect(0, top, (28 * dn).toInt(), top + (200 * dn).toInt()))
+                }
               }
             }
           }
