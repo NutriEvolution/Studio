@@ -36,7 +36,7 @@ function dotsMenu(){const set=`<div class=h>IMPOSTAZIONI</div>${tip(I('sparkles'
 function readTop(){const M=MOB(),vm=M&&S.vm==1?0:S.vm;
  const seg=`<div class=seg>${(M?[0,2]:[0,1,2]).map(k=>`<button class="${vm==k?'on':''}" onclick="A('vm',${k})">${[I('file-text'),I('docmap'),I('network')][k]}</button>`).join('')}</div>`;
  const foc=`<div class=seg><button class="${S.focus?'on':''}" onclick="A('focus')">${I('scan-text')}${M?'':'<span class=lb>Focus</span>'}</button><button onclick="A('menu','gran')">${I('chevron-down')}</button></div>`;
- if(M)return`<div class="top m"><button onclick="A('view','lib')">${I('house')}</button>${foc}${seg}<button onclick="A('menu','plus')">${I('plus')}</button><button onclick="A('menu','dots')">${I('ellipsis-vertical')}</button></div>`;
+ if(M)return`<div class="top m"><button onclick="A('view','lib')">${I('house')}</button>${foc}${seg}${doc().kind=='pdf'?`<button class="${S.ink&&S.ink.on?'on':''}" onclick="inkOpen()">${I('pen-tool')}</button>`:''}<button onclick="A('menu','plus')">${I('plus')}</button><button onclick="A('menu','dots')">${I('ellipsis-vertical')}</button></div>`;
  return`<div class=top><button onclick="A('view','lib')">${I('house')}</button><button onclick="A('menu','dots')">${I('ellipsis-vertical')}</button><button class="${S.side?'on':''}" onclick="A('menu','side')">${I('panel-left')}${I('chevron-down')}</button><div class=sp></div>${foc}${seg}<button onclick="A('menu','plus')">${I('plus')}</button>${pdfToggle()}<button title="Cerca nel testo (Ctrl+F)" onclick="A('modal','find')">${I('search')}</button><button title="Penna e annotazioni" class="${S.ink&&S.ink.on?'on':''}" onclick="inkOpen()">${I('pen-tool')}</button><div class=sp></div></div>`}
 function readNav(d){const a=S.focus?`<button onclick="A('go',-1)">${I('chevron-left')}</button><button onclick="A('go',1)">${I('chevron-right')}</button>`:'';if(MOB())return a?`<div class="nav fl">${a}</div>`:'';const z=pdfZoomBtns(d);return a||z?`<div class=nav>${a}${z}</div>`:''}
 const idxCmp=(a,b)=>(a.pg??0)-(b.pg??0)||(a.s??a.i??0)-(b.s??b.i??0);
@@ -52,5 +52,9 @@ function sideHTML(d){if(!S.side||!d)return'';const pdf=d.kind=='pdf'&&!S.pdfText
 function morphInto(el,html,self){if(!window.morphdom){el.innerHTML=html;return}
  morphdom(el,self?html:'<div id="'+el.id+'">'+html+'</div>',{childrenOnly:!self,onBeforeElUpdated(from,to){
   if(from.tagName=='IMG'&&from.getAttribute('src')&&['t','i','th'].some(k=>from.dataset[k]!==undefined&&from.dataset[k]===to.dataset[k]))return false;
-  if((from.tagName=='INPUT'||from.tagName=='TEXTAREA')&&from===document.activeElement)to.value=from.value;return true}})}
+  if((from.tagName=='INPUT'||from.tagName=='TEXTAREA')&&from===document.activeElement)to.value=from.value;if(from.dataset&&from.dataset.a&&from.classList&&(from.classList.contains('menu')||from.classList.contains('modal'))){to.setAttribute('data-a','1');to.style.transformOrigin=from.style.transformOrigin}return true}})}
 const patchApp=html=>morphInto(document.getElementById('app'),html);
+
+/* le finestre si aprono ingrandendosi dal pulsante che le ha aperte */
+document.addEventListener('pointerdown',e=>{const t=e.target.closest&&e.target.closest('button,[onclick],.di,.tg');const r=t?t.getBoundingClientRect():null;window.__anc=r?[r.left+r.width/2,r.top+r.height/2,Date.now()]:[e.clientX,e.clientY,Date.now()]},true);
+function anchorPop(){const a=window.__anc;document.querySelectorAll('.menu:not([data-a]),.modal:not([data-a])').forEach(el=>{el.dataset.a=1;el.style.animation='none';const r=el.getBoundingClientRect();let ax=innerWidth/2,ay=innerHeight/2;if(a&&Date.now()-a[2]<2500){ax=a[0];ay=a[1]}el.style.transformOrigin=`${ax-r.left}px ${ay-r.top}px`;void el.offsetWidth;el.style.animation=''})}

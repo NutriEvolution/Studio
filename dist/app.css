@@ -146,3 +146,18 @@ body.pgdark .pgw{background:#161616}body.pgdark .pgw .cv{filter:invert(.9) hue-r
 .ib2{display:flex;align-items:center;gap:10px;padding:6px 6px 2px;border-top:1px solid var(--bd);margin-top:6px;flex-wrap:wrap}.szg{display:flex;align-items:center;gap:9px;margin-right:6px}.szd{display:inline-block;border-radius:50%;background:#7d85a6;cursor:pointer}.szd.on{background:var(--ac2);box-shadow:0 0 0 3px #6f82f044}
 .inkc{width:24px;height:24px;border-radius:50%;display:inline-block;cursor:pointer;border:2px solid #fff3}.inkc.on{border-color:#fff;box-shadow:0 0 0 2px #6f82f0}
 @media(max-width:700px){.inkbar{bottom:64px}}
+
+.top .sp{display:block;flex:1}.top.m .sp{display:none}
+@keyframes zin{from{opacity:0;scale:.5}to{opacity:1;scale:1}}
+.menu{animation:zin .17s cubic-bezier(.2,.8,.3,1)}.modal{animation:zin .19s cubic-bezier(.2,.8,.3,1)}
+.inkbar{touch-action:none;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;padding:8px 10px;user-select:none;-webkit-user-select:none}
+.inkbar .ig{display:flex;gap:2px;align-items:center}.inkbar .ig button{padding:8px 9px;border:0;background:none}.inkbar .ig button.on{background:#1b2150;color:var(--ac2)}.inkbar .ig button:disabled{opacity:.35}
+.inkbar.dk-b{left:50%;bottom:14px;top:auto;transform:translateX(-50%)}.inkbar.dk-t{left:50%;top:64px;bottom:auto;transform:translateX(-50%)}
+.inkbar.dk-l,.inkbar.dk-r{top:50%;bottom:auto;transform:translateY(-50%);flex-direction:column;flex-wrap:wrap;align-content:flex-start;max-height:calc(100dvh - 140px);width:max-content;max-width:calc(100vw - 80px)}
+.inkbar.dk-l{left:8px;right:auto}.inkbar.dk-r{right:8px;left:auto}
+.inkbar.dk-l .ig,.inkbar.dk-r .ig{flex-direction:column}.inkbar.dk-l .szg,.inkbar.dk-r .szg{flex-direction:column}
+.inkbar.moving{outline:2px solid var(--ac);box-shadow:0 0 0 6px #6f82f033,0 18px 50px #000c;opacity:.95}
+@media(max-width:700px){.inkbar.dk-b{bottom:64px}.inkbar.dk-t{top:60px}}
+#snz{position:fixed;inset:0;z-index:60;pointer-events:none;display:none}#snz.on{display:block}#snz i{position:absolute;background:#6f82f01f;border:2px dashed #6f82f066;transition:background .1s}#snz i.on{background:#6f82f055}
+#snz .l{left:0;top:0;bottom:0;width:90px}#snz .r{right:0;top:0;bottom:0;width:90px}#snz .t{left:90px;right:90px;top:0;height:90px}#snz .b{left:90px;right:90px;bottom:0;height:90px}
+#ercur{position:fixed;z-index:30;pointer-events:none;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #000a;display:none}

@@ -19,7 +19,7 @@ async function readPdf(buf,name,prog){const lib=await pj(),pdf=await lib.getDocu
  pages.forEach((pm,n)=>{const bt=blankFur(pm);let first=true;for(let[s,e,b]of splitR(bt)){while(s<e&&/\s/.test(bt[s]))s++;while(e>s&&/\s/.test(bt[e-1]))e--;if(e<=s)continue;if(b||first)pi++;first=false;sents.push([n,s,e,pi])}});
  const paras=[];sents.forEach(([pg,s,e,p])=>{const t=pages[pg].text.slice(s,e).trim();paras[p]=(paras[p]?paras[p]+' ':'')+t});
  let idx=await outlineIdx(pdf,sents);if(!idx.length)idx=headingGuess(pages);const y=(mi.CreationDate||'').match(/D:(\d{4})/);let thumb='';try{const p1=await pdf.getPage(1),v=p1.getViewport({scale:.5}),c=document.createElement('canvas');c.width=v.width;c.height=v.height;await p1.render({canvasContext:c.getContext('2d'),viewport:v}).promise;thumb=c.toDataURL('image/jpeg',.7)}catch(e){}
- return{title:mi.Title||name.replace(/\.pdf$/i,''),authors:(mi.Author||'').split(/[;,]/).map(a=>a.trim()).filter(Boolean),year:y?y[1]:'',pages:pdf.numPages,paras,model:{pages,sents,v:2},buf,thumb,idx}}
+ return{title:mi.Title||name.replace(/\.pdf$/i,''),authors:(mi.Author||'').split(/[;,]/).map(a=>a.trim()).filter(Boolean),year:y?y[1]:'',pages:pdf.numPages,paras,model:{pages,sents,v:3},buf,thumb,idx}}
 function lineList(mod,ps){const out=[];mod.pages.forEach((p,n)=>{let cur=null;p.items.forEach(([x,y,w,h,s,e,ff,fur])=>{if(fur)return;if(cur&&Math.abs(cur.y-y)<h*.5)cur.e=e;else{if(cur)out.push(cur);cur={pg:n,s,e,y}}});if(cur)out.push(cur)});return out.map(l=>{const sp=ps.find(q=>q.pg==l.pg&&l.s>=q.s&&l.s<=q.e)||ps[0];return{pg:l.pg,s:l.s,e:l.e,pi:sp?sp.pi:0,t:mod.pages[l.pg].text.slice(l.s,l.e).trim()+' '}}).filter(l=>l.t.trim())}
 function sentList(mod){return mod.sents.map(([pg,s,e,pi])=>({pg,s,e,pi,t:mod.pages[pg].text.slice(s,e).trim()+' '}))}
 async function pickFile(f){if(!f)return;S.err=null;S.busy=true;S.modal='file';render();
@@ -33,7 +33,7 @@ function modalX(){if(S.modal=='file')return`<div class=ov onclick="A('close')"><
 /* ---- lettore PDF ---- */
 async function loadDoc(id){const d=S.docs.find(x=>x.id==id);if(!d||d.kind!='pdf'||(PV.id==id&&PS[id]))return;const lib=await pj(),buf=await idbGet('f'+id);let mod=await idbGet('m'+id);
  if(!buf||!mod){d.missing=true;return}
- if((mod.v||1)<2){try{const r=await readPdf(buf,d.title);await idbSet('m'+id,r.model);mod=r.model;d.pages=r.pages}catch(e){}}
+ if((mod.v||1)<3){try{const r=await readPdf(buf,d.title);await idbSet('m'+id,r.model);mod=r.model;d.pages=r.pages}catch(e){}}
  PM=mod;PS[id]=sentList(mod);PL[id]=lineList(mod,PS[id]);PV.pdf=await lib.getDocument({data:new Uint8Array(buf.slice(0))}).promise;PV.id=id;PV.scale=0;PV.zoom=1;legacyKw(d);
  if(PV.el)PV.el.remove();const el=PV.el=document.createElement('div');el.className='pdfv off';document.body.append(el);const zer=PV.zer=document.createElement('div');zer.className='zoomer';el.append(zer);PV.shells=[];PV.io=new IntersectionObserver(es=>es.forEach(e=>{const n=+e.target.dataset.pg;e.isIntersecting?drawPage(n):freePage(n)}),{root:el,rootMargin:'900px'});
  mod.pages.forEach((_,n)=>{const w=document.createElement('div');w.className='pgw';w.dataset.pg=n;zer.append(w);PV.shells.push(w)});
@@ -112,7 +112,13 @@ function lineBoxes(R){const L=[];for(const r of R.slice().sort((a,b)=>a.y-b.y||a
 
 /* intestazioni, piè di pagina e numeri di pagina non fanno parte del testo da seguire */
 function markFurniture(pages){const N=pages.length,sig=new Map(),lines=pages.map(p=>{const L=[];for(const it of p.items){const l=L[L.length-1],t=p.text.slice(it[4],it[5]);if(l&&Math.abs(l.y-it[1])<it[3]*.5){l.its.push(it);l.t+=t}else L.push({y:it[1],h:it[3],t,its:[it]})}return L});
- lines.forEach((L,n)=>{const H=pages[n].h;L.forEach(l=>{l.band=l.y<H*.085?'t':(l.y+l.h>H*.915?'b':'');if(l.band){l.sig=l.t.replace(/\d+/g,'#').replace(/\s+/g,' ').trim().toLowerCase();if(l.sig){const s=sig.get(l.sig)||new Set();s.add(n);sig.set(l.sig,s)}}})});
- const hs=[];pages.forEach(p=>p.items.forEach(it=>hs.push(it[3])));hs.sort((a,b)=>a-b);const med=hs[hs.length>>1]||10,need=Math.max(3,Math.ceil(N*.3));
- lines.forEach(L=>L.forEach(l=>{if(!l.band||!l.sig)return;const t=l.t.trim(),num=/^[\s\-–—.·•]*(pag(ina)?\.?\s*)?\d{1,4}(\s*(\/|di|of)\s*\d{1,4})?[\s\-–—.·•]*$/i.test(t),web=/(www\.|https?:|doi\.org|doi:)/i.test(t),rep=N>=3&&(sig.get(l.sig)||new Set()).size>=need&&l.h<=med*1.2;if(num||web||rep)l.its.forEach(it=>{it[7]=1})}))}
+ let lat=0,rtl=0;pages.forEach(p=>{lat+=(p.text.match(/[A-Za-zÀ-ÿ]/g)||[]).length;rtl+=(p.text.match(/[\u0590-\u08FF]/g)||[]).length});const latinDoc=lat>rtl*2;
+ lines.forEach((L,n)=>{const H=pages[n].h;L.forEach(l=>{const top=l.y/H,bot=(l.y+l.h)/H;l.strict=top<.085||bot>.915;l.wide=top<.2||bot>.85;l.band=top<.14||bot>.88;if(l.band){l.sig=l.t.replace(/\d+/g,'#').replace(/\s+/g,' ').trim().toLowerCase();if(l.sig){const s=sig.get(l.sig)||new Set();s.add(n);sig.set(l.sig,s)}}})});
+ const hs=[];pages.forEach(p=>p.items.forEach(it=>hs.push(it[3])));hs.sort((a,b)=>a-b);const med=hs[hs.length>>1]||10,need=Math.max(2,Math.ceil(N*.3));
+ lines.forEach(L=>L.forEach(l=>{const t=l.t.trim();if(!t)return;
+  const num=l.strict&&/^[\s\-–—.·•]*(pag(ina)?\.?\s*)?\d{1,4}(\s*(\/|di|of)\s*\d{1,4})?[\s\-–—.·•]*$/i.test(t),
+   web=l.wide&&/(www\.|https?:|doi\.org|doi:|@[\w-]+\.\w{2,})/i.test(t),
+   rt=l.wide&&latinDoc&&(t.match(/[\u0590-\u08FF]/g)||[]).length>=Math.max(3,(t.match(/\p{L}/gu)||[]).length*.6),
+   rep=l.band&&l.sig&&N>=2&&(sig.get(l.sig)||new Set()).size>=need&&l.h<=med*1.2;
+  if(num||web||rt||rep)l.its.forEach(it=>{it[7]=1})}))}
 function blankFur(pm){const t=pm.text;let o='',p=0;for(const it of pm.items){if(!it[7])continue;o+=t.slice(p,it[4])+' '.repeat(it[5]-it[4]);p=it[5]}return o+t.slice(p)}
